@@ -11,6 +11,25 @@ Sukurti veikiantį hash algoritmą, kuris atitiktu šiuos reikalavimus:
 6. Praktiškai neįmanoma surasti tokių dviejų skirtingų argumentų (input'ų), kad jiems gautume tą patį hash'ą, t. y.,: m1 != m2, bet h(m1) = h(m2).
 7. Bent minimaliai pakeitus įvedimą, pvz.vietoj "Lietuva" pateikus "lietuva", maišos funkcijos rezultatas-kodas turi skirtis.
 
+# Idiegimas (Unix kompiuteryje)
+
+- `git clone https://github.com/vikuliukas/Blockchain_1uzd.git`
+- `cd Blockchain_1uzd`
+- `make`
+- `./main`
+
+# Instrukcijos
+
+- Pasirinkite ar norite tekstą įvesti ranka ar nuskaityti nuo failo. Jei ranka įveskite 0, jei nuo failo - 1.
+- Jei norite nuksaityti nuo failo pasirinkite ar norite, kad visam tekstui būtu vienas hash ar sukurti hash kiekvienai teksto eilutei. Jei visam failui įveskite 0, jei kiekvienai teksto eilutei - 1.
+- Jei pasirinktote sukaityti nuo failo dar nums reikės įvesti failo, nuo kurio norite nuskaityti teksta, pavadinimą (pvz. tekstas.txt).
+- Jei pasirinkote įvestį ranka, jums reikės įvesti norimą tekstą.
+
+- Jei pasirinkote, kad įvesite teksta ranka ar jums reikia vieno hash visam nuskaitytam tekstui, hash bus atspausdintas jums į terminalą.
+- Jei pasirinkote, kad jums reikia skirtingo hash kiekvienai teksto eilutei, rezultatus rasite sugeneruotame rezultatas.txt file.
+
+
+
 # Mano Hash'o analizė
 
 1. Tekstą, kurį naudosimę hash kurimui galima arba įvesti ranka arba nuskaityti nuo failo, kuriame nėra limito.
@@ -27,7 +46,7 @@ void inputfromfile( hash&current, std::string &filename ){
 }
 ```
 
-2. Hash visada išvedamas vienodo dydžio. Kiekvieną teskto simbolį paverčiu į Unicode numerį ir suskirstau į keturias dalis (pasirinkau keturias dalis nes int tipo kintamasis nesutalpintu tokio skaičiaus, kuris paskui pavertus is dešimtainės skaičiavimo sistemos į šešioliktainę būtų 64 simbolių skaičius, tačiau vienas maksimalus dešimtainės systemos `unsigned long long int` yra lygus 16 šešioliktainės sistemos skaičių (FFFFFFFFFFFFFFFF), todėl 64 symboliams reikėjo 4 int kintamųjų). Jeigu failas neturi pakankamai raidžių, kad susidarytu 64 symbolių hash, funkcijoje `makelongerifneeded` failas papildomas, kad tam užtektu.
+2. Hash visada išvedamas vienodo dydžio. Kiekvieną teskto simbolį paverčiu į Unicode numerį ir suskirstau į keturias dalis (pasirinkau keturias dalis nes int tipo kintamasis nesutalpintu tokio skaičiaus, kuris paskui pavertus is dešimtainės skaičiavimo sistemos į šešioliktainę būtų 64 simbolių skaičius, tačiau vienas maksimalus dešimtainės systemos `unsigned long long int` yra lygus 16 šešioliktainės sistemos skaičių (FFFFFFFFFFFFFFFF), todėl 64 symboliams reikėjo 4 int kintamųjų). Jeigu failas neturi pakankamai raidžių, kad susidarytu 64 symbolių hash, funkcijoje `makelongerifneeded` failas papildomas, kad tam užtektu. Po kelių testu pastebėjau, kad kartais naudojant lietuviškas raides kartais vistek būna 15 simbolių `hex` kintamajam, tokiu atveju jį papildau 0.
 
 ## Hash algoritmas
 ```c++
@@ -35,35 +54,35 @@ void hashalgorithm( hash&current ){
     std::string copy = current.getfixedinput();
     std::wstring_convert<std::codecvt_utf8_utf16<char32_t>,char32_t> converter;
     std::u32string input32 = converter.from_bytes(copy);
-    unsigned long long int sum1 = 1;
-    unsigned long long int sum2 = 1;
-    unsigned long long int sum3 = 1;
-    unsigned long long int sum4 = 1;
+    unsigned long long int sum[5] = {1};
     int speperating = 1;
     int i = 1;
     for(char32_t &character : input32) {
         if(speperating == 1){
-            sum1 = i * sum1 + character;
+            sum[0] = ( i + i ) * sum[0] + character;
         }
         if(speperating == 2){
-            sum2 = i * sum2 + character;
+            sum[1] = ( i + i ) * sum[1] + character;
         }
         if(speperating == 3){
-            sum3 = i * sum3 + character;
+            sum[2] = ( i + i ) * sum[2] + character;
         }
         if(speperating == 4){
-            sum4 = i * sum4 + character;
+            sum[3] = ( i + i ) * sum[3] + character;
             speperating = 0;
         }
         speperating ++;
         i++;
     }
 
-    std::string hex1 = inttohex (sum1);
-    std::string hex2 = inttohex (sum2);
-    std::string hex3 = inttohex (sum3);
-    std::string hex4 = inttohex (sum4);
-    std::string unshuffledhash = hex1 + hex2 + hex3 + hex4;
+    std::string hex [5] = {""};
+    for(int i = 0; i < 4; i++){
+        hex[i] = inttohex(sum[i]);
+        while(hex[i].length()<16){
+            hex[i] += "0";
+        }
+    }
+    std::string unshuffledhash = hex[0] + hex[1] + hex[2] + hex[3];
     std::string shuffledhash = hashshuffle( unshuffledhash, current );
     current.setoutput(shuffledhash);
 }
@@ -112,7 +131,7 @@ std::string hashshuffle( std::string &unshuffledhash, hash &current ){
 
 5. Atkurti tekstą iš hash yra sudėtinga, kadangi nepaisant teksto dyžio, hash kodes išlieka toks pats. Taipogi, naudojama `shuffle` funkcija, kuri sumaišo hash simbolius. Dar sunku dėl to, kad nors vienos raidės pakeitimas tekste duoda kitokį hash kodą.
 
-6. Tam, kad du skirtingi žodžiai nehautu tokio pat hash kodo, keliose vietose dėmęsį atkreipiau į raidės vietą žodyje, ne vien raidės unicode skaitmenį. Tam kad gautum tokia pačią sumą ir seed reikia, kad ne vien tokios pat raidės būtu panaudojamos, bet ir to, kad jos būtų taip pat išsidėsčiusios.
+6. Tam, kad du skirtingi žodžiai negautu tokio pat hash kodo, keliose vietose dėmęsį atkreipiau į raidės vietą žodyje, ne vien raidės unicode skaitmenį. Tam kad gautum tokia pačią sumą ir seed reikia, kad ne vien tokios pat raidės būtu panaudojamos, bet ir to, kad jos būtų taip pat išsidėsčiusios.
 
 7. Tam, kad hash kodas pasikeistu pakeitus tik vieną simbolį, buvo jau anksčiau aptarta Shuffle funkcija, kuri priklauso ne tik nuo raidžių unicode skaičių sumos, tačiau ir nuo jų padeties tekste.
 
@@ -128,8 +147,8 @@ a
 
 Resultatas:
 ```
-d566fc78ec3612d7b3426ab3ef6290dcef1cc03cdb9be9ea60de7086087487a9
-Užtruko: 0.0001457 sek.
+4d412cb7e32f8aa3cd2cec8c15c30f8bec96abd40b694371239b4ea9ed196258
+Užtruko: 0.0001118 sek.
 ```
 
 test2.txt
@@ -139,8 +158,8 @@ z
 
 Resultatas:
 ```
-b184d08ee28613ced84b51dc62dd07dfd694cb9e2e63ca7cd6e680e03f0f787a
-Užtruko: 0.0001095 sek.
+99428363e3a281c499bba206fcfdb4d24c69b887fbeca333a114d48ecce5671c
+Užtruko: 0.000181 sek.
 ```
 
 ## 2 Testas.
@@ -172,8 +191,8 @@ Private and permissioned blockchain allow for controlled access to the blockchai
 
 Resultatas:
 ```
-0568c9878a45c8a857f3070c798bb3245c8c1def3a7f26bad67e2032d93dd656
-Užtruko:  0.000641 sek.
+95b997eae7b08ce860aa2e5df1bd84bbb4fcaf6ce8afdb55d54b49ff9250d2a2
+Užtruko: 0.0006541 sek.
 ```
 
 test4.txt
@@ -196,8 +215,8 @@ transaction contents. Does the UTXO's reference input exist in the network state
 
 Resultatas:
 ```
-3b3f319eddc55c78e6aea342bc9558f86b2abac7a579961663bb1a96315f66e
-Užtruko: 0.0005188 sek.
+cfe846ab98d8b36da13b0a3129f1d27c8641421f001d91a5edfd8bf9cc159ec3
+Užtruko: 0.0005273 sek.
 ```
 
 ## 3 Testas.
@@ -225,8 +244,8 @@ palette. However, designs also often feature three-dimensional images, white ink
 
 Resultatas:
 ```
-44547a491782c1b6ffe65babc4e80a272e6e973d7dc6aec248db473b8db700
-Užtruko: 0.0005873 sel.
+73ace611660dd852dd1546fd78cfcc5413162830bd18411806fb254a05cfb4b4
+Užtruko: 0.0008509 sel.
 ```
 test6.txt
 ```
@@ -249,8 +268,8 @@ palette. However, designs also often feature three-dimensional images, white ink
 
 Resultatas:
 ```
-9f07d87dd2cf4534b30a6c78e749b678ae1badc275718cc2db414519d28dce
-Užtruko: 0.0005235 sek.
+c2656fbc587d2d33c44411fb1401a566f145685c8de801140dc61a82fb0dd73b
+Užtruko: 0.0005416 sek.
 ```
 
 ## 4 Testas.
@@ -260,7 +279,107 @@ test7.txt - tuščias.
 
 Resultatas:
 ```
-0d866ea6affedf81f062e88612c3c6d1b4c3cd0bbd0670e97d94dcc4b867022e
-Užtruko: 0.0001096 sek.
+e96c27a4c2de7578ce48b8ae93c96c88813cc2f394bf3b161089aba2bd143c14
+Užtruko: 0.0001084 sek.
 ```
 
+## 5 Testas.
+-Ištirkite Jūsų sukurtos hash funkcijos efektyvumą: tuo tikslu suhash'uokite kiekvieną eilutę iš konstitucija.txt failo.
+
+Resultatas: (pirmos 10 eiluču viso resulatato failo);
+```
+eecae4611b370ba22c2a4ede028141fbf2f5d42626e85f0fce7bb7de2e8e63d9
+eb381d27996171545b523f149980b0173dc6d5d5e3c256b46d3cf23bd3bbcd06
+ec57c97ef15a0378d30c2cb9ae4f97b4508e867c69a1404a81061f6ab4fdaa38
+c01dec4d269daf1c66180fe832c23a98ff22ca504fc6ba48754f1508d49a2461
+b1c3afc36199ddb473d1a4f8e9e4414208c1829f5aa040ee43ddbf3e7b448cf1
+0e09595df8ae254fec9c6681ca0c9092e6f6063547b9a947018f319256445b41
+e1c63e6c126de70afc98fb882771280fa51305ac3f9f91db40b38f047fcb9e10
+df3963c97d93ea7b2c9c4c4cdf8f5142bd59df9e5088a5f02ca2f817efa4147b
+202872e449fb6563dfb424e0627877e6960d975f366d00f35ce03ab2a51f554d
+055b7fde085168e43cfe85498290aacfb88f2b31ba8a5780bf6a31371f4acce6
+05ff50a2c4652c3c09a998a319c0889bca0847887ae8f69a95881ef7d80b2b47
+Užtruko: 0.0253131 sek.
+```
+
+## 6 Testas.
+- failas su 1000 000 atsitiktinių simbolių eilučių, kurios kiekviena turi 5 simbolius. (pavadintas gen1.txt).
+
+gen1.txt pirmos 10 elitučiu.
+```
+bfsSl
+dNCTy
+LyRID
+OlTyJ
+bquOc
+ijgbW
+ORaTo
+aXJuw
+UEDeH
+IrgDb
+```
+
+resultatas.txt pirmos 10 eilučiu.
+```
+458d9e4c8937e323c28c82f7a83150207b34ab3940136cd2f11ebe12b1b080df
+046a8d552c0a3814c01858004658c128e51fa4219d53c7af4bb3b95fe81d6834
+716bc59783c36f825cc8fb8816b4b1e0b373412fb9cda280aba62519836604f3
+b0502fdc89dc903f8ccb023f641e9db34ff663f4a4af2de8af4b104c983d4c6e
+033bc556de5a7472227a3c825b3749c73b219441eeba2a08a06f633b148da8cf
+b047a56c40049fe0397853c17e51818b2230f693a52f795c432bab9bdae12956
+d62b30131fd4281a52f8595f5e31b651d5da06f8fc69ee638fad004eccf6722b
+cfbf823ece93e12872bed2636f4acf411ca3b55cdde9c2e04697958f0809a45a
+9533364f9be26718f1c434985e6c249bd636c6a995278adbf1903a71bad44cf5
+f4b0bf5e1c633bd836b05b9592fa61fd7138398cade68b11ec5b12224127aa19
+Užtruko: 23.081 sek.
+```
+
+## 7 Testas 
+- Failas su 1000 000 atsitiktinių simbolių eilučių, kurių poros skiriasi tik vienu simboliu ir yra 5 simbolių ilgio. (pavadintas gen2.txt).
+
+gen2.txt pirmos 10 eilučiu.
+```
+Valfs
+Va!fs
+fbJFy
+fbJ!y
+WjIqy
+!jIqy
+yzwXn
+!zwXn
+hBnIr
+!BnIr
+```
+
+resultatas.txt pirmos 10 eilučiu.
+```
+bb45680b36eea6b0ba3c9106458038d018af1d1b32c215414a21588d344e3fa7
+543a4851839fb2c1a88319686e8b61464eacdb301ee4473e917b2024fd6c307a
+2f84b43c644af3a381ad994cd8dea502a3921d7efcd1b52b63a828418a42e990
+2fbdd144839e329c2cf120da9cf460d2d81843a928647e5b838ebc1aaba49543
+544d18072671393bbfb434a33c082985bf903aabec476e8486a0b3c170c5bf4d
+933bc00923b340032a6924bbbc7401a79edd80cec1f83064c5f4893af5cd59ab
+98a30b956244a1c3a320a02455b2b3dd6eec8688d3f4f025e331bccfe3920f54
+f433a85f5ad812421a6ce32c9b83590bd16463d15ad38b105433036ea8b280e3
+e2edf9c1b4edc58794bf66ec9d1e80cfa8cbef61cdaca33322131d37c22b5655
+08c29091b9c67a3c9321cce65a81fe42c69db480c529f3cebae257ae9d33751f
+Užtruko: 22.8981 sek.
+```
+
+## Versiju istorija
+
+# [v1.0](https://github.com/vikuliukas/Blockchain_1uzd/releases/tag/v1.0)
+
+*Koreguota*
+
+- funkcijoje hashalgoritm pridėta salygą, kad jei mažai simbolių vienoje hash dayje, ją papildytu.
+
+*Pridėta*
+
+- Pridėtos failų generavimo funkcijos, kurios buvo reikalingos 5, 6 ir 7 testui.
+- Pridėta kita nuskaitymo nuo failo funkcija, kuri nuskaito failo teksta po vieną eilutę ir jos saugo vektorije.
+- Pridėtas 5, 6 ir 7 testai į ReadMe failą.
+
+# [v0.1](https://github.com/vikuliukas/Blockchain_1uzd/releases/tag/v0.1)
+
+- Pirminė programos versija

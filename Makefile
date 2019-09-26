@@ -11,4 +11,4 @@ test:	all
 	./main
 
 clean:
-	rm -f *.o main hash.txt
+	rm -f *.o main rezultatas.txt

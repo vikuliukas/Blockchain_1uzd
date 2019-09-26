@@ -12,14 +12,20 @@ void inputfromfile( hash&current, std::string &filename ){
 
 void inputlinebyline( std::vector<hash> &multiplehash, std::string &filename ){
     std::ifstream f(filename);
-    std::string t = "";
+    std::string t;
     if(f.fail()){
         throw std::exception();
     }
     while(!f.eof()){
         std::getline(f,t);
-        t.erase(t.length()-1);
         multiplehash.push_back(t);
+    }
+    for(unsigned int i = 0; i < multiplehash.size()-1; i++){
+        t = multiplehash[i].getinput();
+        if(t.length() > 0){
+            t.erase(t.length()-1);
+        }
+        multiplehash[i].setinput(t);
     }
     f.close();
 }
@@ -48,35 +54,35 @@ void hashalgorithm( hash&current ){
     std::string copy = current.getfixedinput();
     std::wstring_convert<std::codecvt_utf8_utf16<char32_t>,char32_t> converter;
     std::u32string input32 = converter.from_bytes(copy);
-    unsigned long long int sum1 = 1;
-    unsigned long long int sum2 = 1;
-    unsigned long long int sum3 = 1;
-    unsigned long long int sum4 = 1;
+    unsigned long long int sum[5] = {1};
     int speperating = 1;
     int i = 1;
     for(char32_t &character : input32) {
         if(speperating == 1){
-            sum1 = i * sum1 + character;
+            sum[0] = ( i + i ) * sum[0] + character;
         }
         if(speperating == 2){
-            sum2 = i * sum2 + character;
+            sum[1] = ( i + i ) * sum[1] + character;
         }
         if(speperating == 3){
-            sum3 = i * sum3 + character;
+            sum[2] = ( i + i ) * sum[2] + character;
         }
         if(speperating == 4){
-            sum4 = i * sum4 + character;
+            sum[3] = ( i + i ) * sum[3] + character;
             speperating = 0;
         }
         speperating ++;
         i++;
     }
 
-    std::string hex1 = inttohex (sum1);
-    std::string hex2 = inttohex (sum2);
-    std::string hex3 = inttohex (sum3);
-    std::string hex4 = inttohex (sum4);
-    std::string unshuffledhash = hex1 + hex2 + hex3 + hex4;
+    std::string hex [5] = {""};
+    for(int i = 0; i < 4; i++){
+        hex[i] = inttohex(sum[i]);
+        while(hex[i].length()<16){
+            hex[i] += "0";
+        }
+    }
+    std::string unshuffledhash = hex[0] + hex[1] + hex[2] + hex[3];
     std::string shuffledhash = hashshuffle( unshuffledhash, current );
     current.setoutput(shuffledhash);
 }
@@ -106,4 +112,49 @@ std::string hashshuffle( std::string &unshuffledhash, hash &current ){
 
 void printhash ( hash &current ){
     std::cout<<current.getoutput()<<"\n";
+}
+
+void printhash ( std::vector<hash> &multiplehash ){
+    std::ofstream r ("rezultatas.txt");
+    for(unsigned int i = 0; i < multiplehash.size(); i++){
+        r << multiplehash[i].getoutput() << "\n";
+    }
+    r.close();
+}
+
+void generatefiles1(){
+    std::ofstream gf("gen1.txt");
+    std::string abc = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+    std::random_device rd;
+	std::mt19937 rng(rd());
+	std::uniform_int_distribution<int> uni(0, 51);
+    for(int i = 0; i < 1000000; i++){
+        for(int j = 0; j < 5; j++){
+            gf << abc[uni(rng)];
+        }
+        gf << "\r\n";
+    }
+    gf.close();
+}
+
+void generatefiles2(){
+    std::ofstream gf("gen2.txt");
+    std::string abc = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
+    std::random_device rd;
+	std::mt19937 rng(rd());
+	std::uniform_int_distribution<int> uni(0, 51);
+    std::uniform_int_distribution<int> uni1(0, 4);
+    std::string t = "";
+    for(int i = 0; i < 500000; i++){
+        t = "";
+        for(int j = 0; j < 5; j++){
+            t += abc[uni(rng)];
+        }
+        gf << t;
+        gf << "\r\n";
+        t[uni1(rng)] = '!';
+        gf<< t ;
+        gf << "\r\n";
+    }
+    gf.close();
 }

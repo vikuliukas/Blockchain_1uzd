@@ -1,6 +1,10 @@
 #include "hash.h"
 
 int main(){
+
+	//generatefiles1();
+	//generatefiles2();
+
     std::string t = "";
     std::cout << "Do you want to read text from file or to input the text by hand? \n";
 	std::cout << "If you want to read ext from file input 1, if you want to write text by hand input 0 \n";
@@ -15,6 +19,13 @@ int main(){
     if(t == "0"){
 		hash current;
         inputbyhand( current );
+		makelongerifneeded( current );
+		auto start = std::chrono::high_resolution_clock::now();
+		hashalgorithm( current );
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> dur = end - start;
+		std::cout << "Hash algorithm took " << dur.count() << " sec.\n";
+		printhash( current );
     }
     else{
         std::string filename;
@@ -33,7 +44,6 @@ int main(){
 				return 0;
 			}
 			makelongerifneeded( current );
-			std::cout<<current.getfixedinput()<<"\n";
 			auto start = std::chrono::high_resolution_clock::now();
 			hashalgorithm( current );
 			auto end = std::chrono::high_resolution_clock::now();
@@ -54,6 +64,8 @@ int main(){
 				std::cout << "Unable to open file. \n";
 				return 0;
 			}
+
+			std::chrono::duration<double> timesum;
 			for( unsigned int i=0; i<multiplehash.size(); i++){
 				std::string copy = multiplehash[i].getinput();
 				makelongerifneeded( multiplehash[i] );
@@ -61,10 +73,10 @@ int main(){
 				hashalgorithm( multiplehash[i] );
 				auto end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<double> dur = end - start;
-				std::chrono::duration<double> timesum = timesum + dur;
-				printhash( multiplehash[i] );
+				timesum = timesum + dur;
 			}
-			//std::cout << "Hash algorithm took " << timesum.count() << " sec.\n";
+			printhash( multiplehash );
+			std::cout << "Hash algorithm took " << timesum.count() << " sec.\n";
 		}
     }
 

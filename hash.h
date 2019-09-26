@@ -44,5 +44,8 @@ void hashalgorithm( hash &current );
 std::string inttohex( unsigned long long int &i );
 std::string hashshuffle( std::string &unshuffledhash, hash &current );
 void printhash ( hash &current ); 
+void printhash ( std::vector<hash> &multiplehash );
+void generatefiles1();
+void generatefiles2();
 
 #endif
